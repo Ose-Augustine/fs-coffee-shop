@@ -22,14 +22,6 @@ class AuthError(Exception):
 
 ## Auth Header
 
-'''
-@TODO implement get_token_auth_header() method
-    it should attempt to get the header from the request
-        it should raise an AuthError if no header is present
-    it should attempt to split bearer and the token
-        it should raise an AuthError if the header is malformed
-    return the token part of the header
-'''
 def get_token_auth_header():
     '''Collects Access Token from Authorization Header'''
     auth = request.headers.get('Authorization',None)
@@ -65,23 +57,25 @@ def get_token_auth_header():
     return true otherwise
 '''
 def check_permissions(permission, payload):
-    raise Exception('Not Implemented')
+    '''(str(key:value),dict)->bool
+    This returns True is the permission is in the payload
+    '''
+    if 'permissions' not in payload:
+       raise AuthError({
+           'code':'invalid claims',
+           'description':'Permission not included in payload claims'
+       },400)
+    if permission not in payload['permissions']:
+        raise AuthError({
+            'code':'Unauthorised',
+            'description':'Permission not granted'
+        },403)
+    return True 
+    
 
-'''
-@TODO implement verify_decode_jwt(token) method
-    @INPUTS
-        token: a json web token (string)
-
-    it should be an Auth0 token with key id (kid)
-    it should verify the token using Auth0 /.well-known/jwks.json
-    it should decode the payload from the token
-    it should validate the claims
-    return the decoded payload
-
-    !!NOTE urlopen has a common certificate error described here: https://stackoverflow.com/questions/50236117/scraping-ssl-certificate-verify-failed-error-for-http-en-wikipedia-org
-'''
 
 def verify_decode_jwt(token):
+    '''Verifies the jwt and returns the payload if token is valid'''
     jsonurl = urlopen('https://practice-udacity.us.auth0.com/.well-known/jwks.json')
     jwks = json.loads(jsonurl.read())
     unverified_header = jwt.get_unverified_header(token)
