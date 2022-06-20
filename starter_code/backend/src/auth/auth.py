@@ -5,9 +5,9 @@ from jose import jwt
 from urllib.request import urlopen
 
 
-AUTH0_DOMAIN = 'udacity-fsnd.auth0.com'
+AUTH0_DOMAIN = 'pracitice-udacity.auth0.com'
 ALGORITHMS = ['RS256']
-API_AUDIENCE = 'dev'
+API_AUDIENCE = 'Menues'
 
 ## AuthError Exception
 '''
@@ -31,7 +31,27 @@ class AuthError(Exception):
     return the token part of the header
 '''
 def get_token_auth_header():
-   raise Exception('Not Implemented')
+    '''Collects Access Token from Authorization Header'''
+    auth = request.headers.get('Authorization',None)
+    if not auth:
+        raise AuthError({
+            'code':'authorization_header_missing',
+            'description':'Authorization header is expected.'
+        })
+    #expecting two parts to split 
+    components = auth.split()
+    if components[0].lower() != 'bearer':
+        raise AuthError({
+            'code':'invalid_header',
+            'description':'Authorization header must start with "Bearer"'
+        },401)
+    elif len(components) == 1:
+        raise AuthError({
+            'code':'invalid_header',
+            'description':'token not found'
+        })
+    token = components[1]
+    return token 
 
 '''
 @TODO implement check_permissions(permission, payload) method
@@ -60,8 +80,8 @@ def check_permissions(permission, payload):
 
     !!NOTE urlopen has a common certificate error described here: https://stackoverflow.com/questions/50236117/scraping-ssl-certificate-verify-failed-error-for-http-en-wikipedia-org
 '''
-def verify_decode_jwt(token):
-    raise Exception('Not Implemented')
+
+
 
 '''
 @TODO implement @requires_auth(permission) decorator method
