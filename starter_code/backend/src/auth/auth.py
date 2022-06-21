@@ -1,11 +1,11 @@
 import json
-from flask import request, _request_ctx_stack
+from flask import request, _request_ctx_stack , abort 
 from functools import wraps
 from jose import jwt
 from urllib.request import urlopen
 
 
-AUTH0_DOMAIN = 'pracitice-udacity.auth0.com'
+AUTH0_DOMAIN = 'pracitice-udacity.us.auth0.com'
 ALGORITHMS = ['RS256']
 API_AUDIENCE = 'Menues'
 
@@ -92,7 +92,8 @@ def verify_decode_jwt(token):
                 rsa_key,
                 algorithms=ALGORITHMS,
                 audience=API_AUDIENCE,
-                issuer='https://' + AUTH0_DOMAIN + '/'
+                issuer='https://' + 'practice-udacity.us.auth0.com' + '/'
+
             )
 
             return payload
@@ -132,11 +133,11 @@ def verify_decode_jwt(token):
 def requires_auth(permission=''):
     def requires_auth_decorator(f):
         @wraps(f)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args,**kwargs):
             token = get_token_auth_header()
             payload = verify_decode_jwt(token)
-            check_permissions(permission, payload)
-            return f(payload, *args, **kwargs)
-
-        return wrapper
+            check_permissions(permission,payload)
+            return f(payload,*args,**kwargs)
+        return wrapper 
     return requires_auth_decorator
+    

@@ -17,7 +17,7 @@ CORS(app)
 !! NOTE THIS MUST BE UNCOMMENTED ON FIRST RUN
 !! Running this function will add one
 '''
-db_drop_and_create_all()
+# db_drop_and_create_all()
 
 # ROUTES
 '''
@@ -31,13 +31,15 @@ db_drop_and_create_all()
 
 
 @app.route('/drinks')
-def retrieve_summary_of_drinks():
+@requires_auth('get:drinks')
+def retrieve_summary_of_drinks(payload):
+    auth_return = payload
+    drinks = Drink.query.all()
+    formatted_drinks =  [drink.short() for drink in drinks]
     return jsonify({
-        'success': True,
-        'drinks': 'drinks'
+        'success':True,
+        'drinks':formatted_drinks
     })
-
-
 '''
 @TODO implement endpoint
     GET /drinks-detail
