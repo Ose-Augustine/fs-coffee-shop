@@ -3,9 +3,14 @@ from sqlalchemy import Column, String, Integer
 from flask_sqlalchemy import SQLAlchemy
 import json
 
-database_filename = "database.db"
-project_dir = os.path.dirname(os.path.abspath(__file__))
-database_path = "sqlite:///{}".format(os.path.join(project_dir, database_filename))
+# database_filename = "database.db"
+# project_dir = os.path.dirname(os.path.abspath(__file__))
+# database_path = "sqlite:///{}".format(os.path.join(project_dir, database_filename))
+database_name = "coffee-shop"
+database_user = "augustine"
+db_password = "bahd"
+
+database_path = "postgresql://{}:{}@localhost:5432/{}".format(database_user,db_password,database_name)
 
 db = SQLAlchemy()
 
