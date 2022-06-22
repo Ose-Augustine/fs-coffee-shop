@@ -1,5 +1,7 @@
+from hashlib import new
 import os
-from flask import Flask, request, jsonify, abort
+from pdb import post_mortem
+from flask import Flask, flash, request, jsonify, abort
 from sqlalchemy import exc
 import json
 from flask_cors import CORS
@@ -49,6 +51,16 @@ def retrieve_summary_of_drinks(payload):
         or appropriate status code indicating reason for failure
 '''
 
+@app.route('/drinks-detail')
+@requires_auth('get:drinks-detali')
+def retrive_details_of_drinks():
+    drinks = Drink.query.all()
+    formatted_drinks = [drink.long() for drink in drinks]
+    return jsonify({
+        "success":True,
+        "drinks":formatted_drinks
+    })
+
 
 '''
 @TODO implement endpoint
@@ -59,7 +71,19 @@ def retrieve_summary_of_drinks(payload):
     returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the newly created drink
         or appropriate status code indicating reason for failure
 '''
-
+@app.route('/drinks', methods= ['POST'])
+@requires_auth('post:drinks')
+def new_drink():
+    body = request.get_json()
+    title = body.get("title",None)
+    recipe = body.get("recipe",None)
+    new_drink = Drink(title=title,recipe=recipe)
+    try:
+        new_drink.insert()
+        flash("Successfully created drink")
+    except:
+        new_drink.reverse()
+        flash ("Data not created")
 
 '''
 @TODO implement endpoint
@@ -72,7 +96,28 @@ def retrieve_summary_of_drinks(payload):
     returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the updated drink
         or appropriate status code indicating reason for failure
 '''
+@app.route('/drinks/<int:id>')
+@requires_auth('patch:drinks')
+def modify_existing_drink(id):
+    drink = Drink.query.get_or_404(id)
+    body = request.get_json()
+    title = body.get('title',None)
+    recipe = body.get('recipe',None)
+    #conditions depending on state of json body
+    if title:
+        drink.title = title
+        drink.update()
+    if recipe:
+        drink.recipe = recipe 
+        drink.update()
+    #run the query a seocnd time to get new state of drink
+    updated_drink = Drink.query.get_or_404(id)
+    formatted_drink = updated_drink.long()
+    return jsonify({
+        'success':True,
+        'dirnks':formatted_drink
 
+    })
 
 '''
 @TODO implement endpoint
@@ -84,7 +129,15 @@ def retrieve_summary_of_drinks(payload):
     returns status code 200 and json {"success": True, "delete": id} where id is the id of the deleted record
         or appropriate status code indicating reason for failure
 '''
-
+@app.route('/drinks/<int:id>')
+@requires_auth('delete:drinks')
+def remove_drink(id):
+    drink = Drink.query.get_or_404(id)
+    id = drink.id
+    drink.delete()
+    return jsonify({
+        'success':True,
+        'deleted':id})
 
 # Error Handling
 '''

@@ -104,6 +104,9 @@ class Drink(db.Model):
             drink.insert()
     '''
 
+    def reverse(self):
+        db.session.rollback(self)
+        
     def insert(self):
         db.session.add(self)
         db.session.commit()
