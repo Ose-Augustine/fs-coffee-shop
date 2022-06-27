@@ -20,8 +20,8 @@ db_drop_and_create_all()
 
 @app.route('/drinks')
 def retrieve_summary_of_drinks():
-    drinks = Drink.query.all()[0]
-    formatted_drinks = drinks.short()
+    drinks = Drink.query.all()
+    formatted_drinks = [drink.short() for drink in drinks]
     
     return jsonify({
         'success':True,
@@ -32,8 +32,8 @@ def retrieve_summary_of_drinks():
 @app.route('/drinks-detail')
 @requires_auth('get:drinks-detail')
 def retrive_details_of_drinks():
-    drinks = Drink.query.all()[0]
-    formatted_drinks = drinks.long()
+    drinks = Drink.query.all()
+    formatted_drinks = [drink.long() for drink in drinks]
     return jsonify({
         "success":True,
         "drinks":formatted_drinks
@@ -46,7 +46,7 @@ def retrive_details_of_drinks():
 def new_drink():
     body = request.get_json()
     title = body.get("title",None)
-    recipe = body.get("recipe",None)
+    recipe = str([body.get("recipe",None)])
     new_drink = Drink(title=title,recipe=recipe)
     try:
         new_drink.insert()
@@ -75,7 +75,7 @@ def modify_existing_drink(id):
     formatted_drink = updated_drink.long()
     return jsonify({
         'success':True,
-        'dirnks':formatted_drink
+        'dirnks':list(formatted_drink)
 
     })
 
@@ -107,17 +107,6 @@ def unprocessable(error):
 
 
 '''
-@TODO implement error handlers using the @app.errorhandler(error) decorator
-    each error handler should return (with approprate messages):
-             jsonify({
-                    "success": False,
-                    "error": 404,
-                    "message": "resource not found"
-                    }), 404
-
-'''
-
-'''
 @TODO implement error handler for 404
     error handler should conform to general task above
 '''
@@ -125,21 +114,24 @@ def unprocessable(error):
 def not_found():
     return jsonify({
         "success":False,
+        "error":404,
         "message":"Resource not found"
-    })
+    },404)
 
 @app.errorhandler(405)
 def unsupported_method():
     return jsonify({
         "success":False,
+        "error":405,
         "message":"Method not allowed for the url requested"
-    })
+    },405)
 @app.errorhandler(403)
 def permission_denied():
     return jsonify({
         "success":False,
+        "error":403,
         "message":"Permission not granted for request"
-    })
+    },403)
 
 @app.errorhandler(AuthError)
 def auth_errors(error):
