@@ -22,10 +22,10 @@ db_drop_and_create_all()
 def retrieve_summary_of_drinks():
     drinks = Drink.query.all()
     formatted_drinks = [drink.short() for drink in drinks]
-    
+
     return jsonify({
-        'success':True,
-       "drinks":formatted_drinks
+        'success': True,
+        "drinks": formatted_drinks
     })
 
 
@@ -33,50 +33,49 @@ def retrieve_summary_of_drinks():
 @requires_auth('get:drinks-detail')
 def retrive_details_of_drinks():
     drinks = Drink.query.all()
-    formatted_drinks = [drink.long() for drink in drinks]
+    formatted_drinks = [drink.long() for drink in drinks] 
     return jsonify({
-        "success":True,
-        "drinks":formatted_drinks
+        "success": True,
+        "drinks": formatted_drinks 
     })
 
 
-
-@app.route('/drinks', methods= ['POST'])
+@app.route('/drinks', methods=['POST'])
 @requires_auth('post:drinks')
 def new_drink():
     body = request.get_json()
-    title = body.get("title",None)
-    recipe = str([body.get("recipe",None)])
-    new_drink = Drink(title=title,recipe=recipe)
+    title = body.get("title", None)
+    recipe = str([body.get("recipe", None)])
+    new_drink = Drink(title=title, recipe=recipe)
     try:
         new_drink.insert()
-    except:
+    except BaseException:
         abort(400)
     return jsonify({
-        'success':True,
+        'success': True,
     })
+
 
 @app.route('/drinks/<int:id>', methods=['PATCH'])
 @requires_auth('patch:drinks')
 def modify_existing_drink(id):
-    drink = Drink.query.filter(Drink.id==id).one_or_none()
+    drink = Drink.query.filter(Drink.id == id).one_or_none()
     body = request.get_json()
-    title = body.get('title',None)
-    recipe = body.get('recipe',None)
-    #conditions depending on state of json body
+    title = body.get('title', None)
+    recipe = body.get('recipe', None)
+    # conditions depending on state of json body
     if title:
         drink.title = title
         drink.update()
     if recipe:
-        drink.recipe = recipe 
+        drink.recipe = recipe
         drink.update()
-    #run the query a seocnd time to get new state of drink
+    # run the query a seocnd time to get new state of drink
     updated_drink = Drink.query.get_or_404(id)
     formatted_drink = updated_drink.long()
     return jsonify({
-        'success':True,
-        'dirnks':list(formatted_drink)
-
+        'success': True,
+        'drinks': list(formatted_drink)
     })
 
 
@@ -87,9 +86,10 @@ def remove_drink(id):
     id = drink.id
     drink.delete()
     return jsonify({
-        'success':True,
-        'deleted':id
-        })
+        'success': True,
+        'deleted': id
+    })
+
 
 # Error Handling
 '''
@@ -110,32 +110,39 @@ def unprocessable(error):
 @TODO implement error handler for 404
     error handler should conform to general task above
 '''
+
+
 @app.errorhandler(404)
 def not_found():
     return jsonify({
-        "success":False,
-        "error":404,
-        "message":"Resource not found"
-    },404)
+        "success": False,
+        "error": 404,
+        "message": "Resource not found"
+    }, 404)
+
 
 @app.errorhandler(405)
 def unsupported_method():
     return jsonify({
-        "success":False,
-        "error":405,
-        "message":"Method not allowed for the url requested"
-    },405)
+        "success": False,
+        "error": 405,
+        "message": "Method not allowed for the url requested"
+    }, 405)
+
+
 @app.errorhandler(403)
 def permission_denied():
     return jsonify({
-        "success":False,
-        "error":403,
-        "message":"Permission not granted for request"
-    },403)
+        "success": False,
+        "error": 403,
+        "message": "Permission not granted for request"
+    }, 403)
+
 
 @app.errorhandler(AuthError)
 def auth_errors(error):
-    return error.error 
+    return error.error
+
 
 if __name__ == "__main__":
     app.debug = True

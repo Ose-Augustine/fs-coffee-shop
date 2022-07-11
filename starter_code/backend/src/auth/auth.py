@@ -5,7 +5,7 @@ from jose import jwt
 from urllib.request import urlopen
 
 
-AUTH0_DOMAIN = 'pracitice-udacity.us.auth0.com'
+AUTH0_DOMAIN = 'practice-udacity.us.auth0.com'
 ALGORITHMS = ['RS256']
 API_AUDIENCE = 'Menues'
 
@@ -29,7 +29,7 @@ def get_token_auth_header():
         raise AuthError({
             'code':'authorization_header_missing',
             'description':'Authorization header is expected.'
-        })
+        },401)
     #expecting two parts to split 
     components = auth.split()
     if components[0].lower() != 'bearer':
@@ -41,7 +41,7 @@ def get_token_auth_header():
         raise AuthError({
             'code':'invalid_header',
             'description':'token not found'
-        })
+        },401)
     token = components[1]
     return token 
 
@@ -67,7 +67,7 @@ def check_permissions(permission, payload):
 
 def verify_decode_jwt(token):
     '''Verifies the jwt and returns the payload if token is valid'''
-    jsonurl = urlopen('https://practice-udacity.us.auth0.com/.well-known/jwks.json')
+    jsonurl = urlopen(f'https://{AUTH0_DOMAIN}/.well-known/jwks.json')
     jwks = json.loads(jsonurl.read())
     unverified_header = jwt.get_unverified_header(token)
     rsa_key = {}
@@ -93,7 +93,7 @@ def verify_decode_jwt(token):
                 rsa_key,
                 algorithms=ALGORITHMS,
                 audience=API_AUDIENCE,
-                issuer='https://' + 'practice-udacity.us.auth0.com' + '/'
+                issuer='https://' + AUTH0_DOMAIN + '/'
 
             )
 
@@ -135,9 +135,12 @@ def requires_auth(permission=''):
     def requires_auth_decorator(f):
         @wraps(f)
         def wrapper(*args,**kwargs):
-            token = get_token_auth_header()
-            payload = verify_decode_jwt(token)
-            check_permissions(permission,payload)
+            try:
+                token = get_token_auth_header()
+                payload = verify_decode_jwt(token)
+                check_permissions(permission,payload)
+            except:
+                abort (401)
             return f(*args,**kwargs)
         return wrapper 
     return requires_auth_decorator
